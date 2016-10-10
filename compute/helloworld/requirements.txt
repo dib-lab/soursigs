@@ -1,0 +1,2 @@
+sourmash==1.0
+requests==2.11.1

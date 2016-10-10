@@ -1,0 +1,7 @@
+---
+project: soursigs
+default-region: us-west-2
+code-bucket: gordon-soursigs-f2d75be4
+apps:
+  - gordon.contrib.lambdas
+  - compute

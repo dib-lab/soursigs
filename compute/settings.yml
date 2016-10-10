@@ -1,0 +1,10 @@
+lambdas:
+  helloworld:
+    code: helloworld
+    handler: code.handler
+    runtime: python
+    timeout: 300
+    memory: 128
+    #description: Simple functions in python which says hello
+    #role:
+    #memory:
