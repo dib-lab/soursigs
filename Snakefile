@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 t = pd.read_csv("outputs/info/transcriptomic.csv")
 
@@ -48,3 +50,23 @@ rule download_ipfs:
         mv go-ipfs/ipfs .
         rm -rf go-ipfs*
     """
+
+rule update_ipfs:
+    shell: """
+        cd outputs
+        ../bin/ipfs name publish $(../bin/ipfs add -r signatures/ | tail -1 | cut -d " " -f2)
+    """
+
+rule check_downloaded:
+    run:
+        from glob import glob
+
+        completed = pd.Series([os.path.basename(f).replace(".sig", "")
+                               for f in glob("outputs/signatures/*.sig")])
+
+        tt = t.set_index('Run')
+
+        print("{0:,.2f} MB, {1}/{2} runs ({3:.2f} %)".format(
+            tt.loc[completed]['size_MB'].sum(),
+            len(completed), len(tt),
+            len(completed) / len(tt) * 100))
