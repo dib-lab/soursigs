@@ -1,0 +1,8 @@
+outputs/*
+bin/*
+.snakemake/*
+.git/*
+_build/*
+compute/*
+iam/*
+**/__pycache__

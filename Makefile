@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 ARN := 'arn:aws:lambda:us-west-2:087752545277:function:dev-soursigs-r-ComputeHelloworld-DKSQ2BU607MQ:current'
 
 URL := 'http://sra-download.ncbi.nlm.nih.gov/srapub/SRR1300443'
@@ -21,5 +23,8 @@ iam_permissions:
 sync:
 #	rsync -avzP . lambda:soursigs/
 	rsync -avzP lambda:soursigs/ .
+
+run_worker:
+	source iam/soursigs_sqs && /home/chick/.virtualenvs/soursigs/bin/celery -A soursigs worker
 
 .PHONY: iam_permissions

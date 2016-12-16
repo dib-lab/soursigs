@@ -1,0 +1,4 @@
+celery[sqs]==4.0.1
+celery-s3==0.1.1
+sourmash==1.0
+snakemake==3.8.2

@@ -1,9 +1,10 @@
 import os
 
 import pandas as pd
-t = pd.read_csv("outputs/info/transcriptomic.csv")
+t = pd.read_csv("outputs/info/transcriptomic.csv", usecols=["Run", "size_MB"])
 
 INPUTS = t.sort_values(by='size_MB')['Run']
+#INPUTS = t.sample(50)['Run']
 
 #SRR900186
 
@@ -13,11 +14,12 @@ rule all:
 rule run_fastq_dump:
     output: "outputs/signatures/{SRA_ID}.sig"
     params: SRA_ID="{SRA_ID}"
-    shell: """
-        mkdir -p outputs/signatures
-        set -o pipefail
-        bin/fastq-dump -A {params.SRA_ID} -Z | sourmash compute -f -o {output} -
-    """
+    run:
+        from soursigs.tasks import compute
+        job = compute.delay(params.SRA_ID)
+        result = job.get()
+        with open(output[0], 'wt') as f:
+            f.write(result)
 
 rule download_runinfo:
     output: "outputs/info/transcriptomic.csv"
@@ -66,7 +68,8 @@ rule check_downloaded:
 
         tt = t.set_index('Run')
 
-        print("{0:,.2f} MB, {1}/{2} runs ({3:.2f} %)".format(
+        print("{0:,.2f} MB ({4:.2f}) %, {1}/{2} runs ({3:.2f} %)".format(
             tt.loc[completed]['size_MB'].sum(),
             len(completed), len(tt),
-            len(completed) / len(tt) * 100))
+            len(completed) / len(tt) * 100,
+            tt.loc[completed]['size_MB'].sum() / tt['size_MB'].sum() * 100))
