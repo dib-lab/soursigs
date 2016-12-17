@@ -27,4 +27,7 @@ sync:
 run_worker:
 	source iam/soursigs_sqs && /home/chick/.virtualenvs/soursigs/bin/celery -A soursigs worker
 
+run_workers:
+	for f in $$(seq 0 31); do docker run --env-file iam/soursigs_sqs.env -d luizirber/soursigs:c1; done;
+
 .PHONY: iam_permissions

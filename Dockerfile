@@ -29,4 +29,4 @@ RUN echo '/repository/user/cache-disabled = "true"' > .ncbi/user-settings.mkfg
 
 COPY soursigs soursigs
 
-CMD celery -A soursigs worker
+CMD celery -A soursigs -c 1 worker
