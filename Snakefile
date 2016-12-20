@@ -21,7 +21,16 @@ rule run_fastq_dump:
         with open(output[0], 'wt') as f:
             f.write(result)
 
-rule download_runinfo:
+rule download_microbial_runinfo:
+    output: "outputs/info/microbial.csv"
+    shell: """
+        mkdir -p outputs/info
+        wget -O {output}.full 'http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term="microbial"[All Fields] AND "biomol dna"[Properties]'
+        head -n -1 {output}.full > {output}
+        rm {output}.full
+    """
+
+rule download_transcriptomic_runinfo:
     output: "outputs/info/transcriptomic.csv"
     shell: """
         mkdir -p outputs/info
