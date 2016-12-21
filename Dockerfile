@@ -10,7 +10,7 @@ WORKDIR /home/user
 ADD requirements.txt .
 
 RUN apt-get update && \
-    apt-get install -y build-essential libssl-dev libcurl4-openssl-dev curl && \
+    apt-get install -y libgomp1 build-essential libssl-dev libcurl4-openssl-dev curl && \
     curl --output sratoolkit.tar.gz https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.8.0/sratoolkit.2.8.0-2-ubuntu64.tar.gz && \
     tar xf sratoolkit.tar.gz && \
     rm sratoolkit.tar.gz && \

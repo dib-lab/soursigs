@@ -1,19 +1,40 @@
 import os
 
-import pandas as pd
-t = pd.read_csv("outputs/info/transcriptomic.csv", usecols=["Run", "size_MB"])
 
-INPUTS = t.sort_values(by='size_MB')['Run']
-#INPUTS = t.sample(50)['Run']
+def inputs_from_runinfo(w):
+    import pandas as pd
+    t = pd.read_csv("outputs/info/{subset}.csv".format(**w),
+                     usecols=["Run", "size_MB"])
 
-#SRR900186
+    #SRR900186
+    INPUTS = t['Run']
+    #INPUTS = t.sort_values(by='size_MB')['Run']
+    #INPUTS = (t.sort_values(by='size_MB')['Run']
+    #           .head(1))
+    #           .sample(1000))
+
+    return expand("outputs/signatures/{subset}/{config}/{SRA_IDS}.sig",
+                  subset=w.subset,
+                  config=w.config,
+                  SRA_IDS=INPUTS)
 
 rule all:
-    input: expand("outputs/signatures/{SRA_IDS}.sig", SRA_IDS=INPUTS)
+    input:
+        "outputs/info/transcriptomic.csv",
+        "outputs/info/microbial.csv",
+        "outputs/signatures/microbial/1m-then-trim/results"
+
+rule microbial_signatures:
+    input: inputs_from_runinfo
+    output: 'outputs/signatures/{subset}/{config}/results'
+    shell: "touch {output}"
 
 rule run_fastq_dump:
-    output: "outputs/signatures/{SRA_ID}.sig"
-    params: SRA_ID="{SRA_ID}"
+    output: "outputs/signatures/{subset}/{config}/{SRA_ID}.sig"
+    params:
+        SRA_ID="{SRA_ID}",
+        subset="{subset}",
+        config="{config}"
     run:
         from soursigs.tasks import compute
         job = compute.delay(params.SRA_ID)
@@ -25,7 +46,8 @@ rule download_microbial_runinfo:
     output: "outputs/info/microbial.csv"
     shell: """
         mkdir -p outputs/info
-        wget -O {output}.full 'http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term="microbial"[All Fields] AND "biomol dna"[Properties]'
+        wget -O {output}.full 'http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=(("biomol dna"[Properties] NOT amplicon[All Fields])) AND "bacteria"[orgn:__txid2] NOT metagenome'
+        #wget -O {output}.full 'http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term="microbial"[All Fields] AND "biomol dna"[Properties]'
         head -n -1 {output}.full > {output}
         rm {output}.full
     """
