@@ -11,7 +11,7 @@ def compute(sra_id):
         try:
             shell('fastq-dump -A {sra_id} -Z | '
                   'head -4000000 | '
-                  'trim-low-abund.py -M 1e8 -k 21 -V -Z 10 -C 3 - -o - | '
+                  'trim-low-abund.py -M 5e8 -k 21 -V -Z 10 -C 3 - -o - | '
                   'sourmash compute -f -k 21 --dna - -o {output} --name {sra_id}'
                   .format(sra_id=sra_id, output=f.name))
         except CalledProcessError as e:

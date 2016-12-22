@@ -41,7 +41,7 @@ rule run_fastq_dump:
         from celery.exceptions import TimeoutError
         job = compute.delay(params.SRA_ID)
         try:
-            result = job.get(interval=60, timeout=6000)
+            result = job.get(interval=60)
         except TimeoutError:
             # TODO: command took too long, retry?
             pass
