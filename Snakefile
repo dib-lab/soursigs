@@ -1,4 +1,5 @@
 import os
+from subprocess import CalledProcessError
 
 
 def inputs_from_runinfo(w):
@@ -37,10 +38,21 @@ rule run_fastq_dump:
         config="{config}"
     run:
         from soursigs.tasks import compute
+        from celery.exceptions import TimeoutError
         job = compute.delay(params.SRA_ID)
-        result = job.get()
-        with open(output[0], 'wt') as f:
-            f.write(result)
+        try:
+            result = job.get(interval=60, timeout=6000)
+        except TimeoutError:
+            # TODO: command took too long, retry?
+            pass
+        except CalledProcessError:
+            # TODO: command failed, retry?
+            pass
+        else:
+            with open(output[0], 'wt') as f:
+                f.write(result)
+        finally:
+            job.forget()
 
 rule download_microbial_runinfo:
     output: "outputs/info/microbial.csv"
