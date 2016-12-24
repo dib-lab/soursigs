@@ -21,6 +21,7 @@ BROKER_TRANSPORT_OPTIONS = {
  'queue_name_prefix': 'soursigs-',
  'visibility_timeout': 3600, # seconds
  'wait_time_seconds': 20,  # Long polling
+ 'polling_interval': 10,  # check queue every 10 seconds
 }
 
 import snakemake
