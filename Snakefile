@@ -1,9 +1,11 @@
 import os
 from subprocess import CalledProcessError
 
+import numpy as np
+import pandas as pd
+
 
 def inputs_from_runinfo(w):
-    import pandas as pd
     t = pd.read_csv("outputs/info/{subset}.csv".format(**w),
                      usecols=["Run", "size_MB"])
 
@@ -116,3 +118,34 @@ rule check_downloaded:
             len(completed), len(tt),
             len(completed) / len(tt) * 100,
             tt.loc[completed]['size_MB'].sum() / tt['size_MB'].sum() * 100))
+
+rule plot_speed:
+    run:
+        from datetime import datetime, timedelta, date, time
+        for root, dirs, files in os.walk("outputs/signatures/microbial/1m-then-trim/", topdown=False):
+            ctimes = [os.stat((os.path.join(root, name))).st_ctime for name in files]
+        bottom = np.min(ctimes)
+        top = np.max(ctimes)
+        #offset = timedelta(hours=12)
+        offset = timedelta(days=1)
+
+        bottom = datetime.combine(date.fromtimestamp(bottom), time()).timestamp()
+        bins = [datetime.fromtimestamp(bottom).timestamp()]
+        c = bottom
+        while c < top:
+            next_day = datetime.fromtimestamp(c) + offset
+            c = next_day.timestamp()
+            bins.append(c)
+
+        ctimes, bins = np.histogram(ctimes, bins)
+        top = np.max(ctimes)
+        sumall = np.sum(ctimes)
+        width = 16 / top
+        cum = 0
+        for c, b in zip(ctimes, bins):
+            cum += c
+            print("\t".join([datetime.fromtimestamp(b).strftime("%d %H:%M"),
+                             str(c),
+                             '*' * int(width * c - 1),
+                             '\t',
+                             '*' * int(cum / sumall * 16)]))
