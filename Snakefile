@@ -140,12 +140,20 @@ rule plot_speed:
         ctimes, bins = np.histogram(ctimes, bins)
         top = np.max(ctimes)
         sumall = np.sum(ctimes)
-        width = 16 / top
+        width = 15 / top
+
+        format_string = "{:10}|{:>10} | {:16} | {:16} | {:>6}"
+        print(format_string.format(
+               "date", "count", "histogram", "cumulative", "sigs/h"))
+        print('-' * 68)
+
         cum = 0
         for c, b in zip(ctimes, bins):
             cum += c
-            print("\t".join([datetime.fromtimestamp(b).strftime("%d %H:%M"),
-                             str(c),
-                             '*' * int(width * c - 1),
-                             '\t',
-                             '*' * int(cum / sumall * 16)]))
+            print(format_string.format(
+                     datetime.fromtimestamp(b).strftime("%d %H:%M"),
+                     c,
+                     '*' * int(width * c),
+                     '*' * int(cum / sumall * 15),
+                     int(c / 24))
+                 )
