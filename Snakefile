@@ -4,6 +4,8 @@ from subprocess import CalledProcessError
 import numpy as np
 import pandas as pd
 
+PRJ_ROOT = next(shell("readlink -e .", iterable=True))
+ipfs = os.path.join(PRJ_ROOT, 'bin', 'ipfs')
 
 def inputs_from_runinfo(w):
     t = pd.read_csv("outputs/info/{subset}.csv".format(**w),
