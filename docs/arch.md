@@ -22,7 +22,9 @@ But I'm a grad student and the last thing I want to be doing is babysitting serv
 ## Going serverless: AWS Lambda
 
 The first plan was to use [AWS Lambda][7] to calculate signatures.
-Lambda is **TODO**
+Lambda is a service that exposes functions,
+and it manages all the runtime details (server provisioning and so on),
+while charging by the time and memory it takes to run the function.
 Despite all the promises,
 it is a bit annoying to balance everything to make an useful Lambda,
 so I used the [Gordon framework][8] to structure it.
