@@ -112,6 +112,17 @@ rule update_ipfs:
         ../bin/ipfs name publish $(../bin/ipfs add -r signatures/ | tail -1 | cut -d " " -f2)
     """
 
+rule update_ipfs_syrah:
+    shell: """
+        cd outputs/signatures/microbial
+        HASH=$({ipfs} add -r syrah/ | tail -1 | cut -d " " -f2)
+        {ipfs} files rm -r /signatures/microbial/syrah
+        {ipfs} files cp /ipfs/$HASH /signatures/microbial/syrah
+        HASH=$({ipfs} files stat /signatures | head -1)
+        {ipfs} name publish $HASH
+        {ipfs} pin add -r $HASH
+    """
+
 rule check_downloaded:
     run:
         from glob import glob
@@ -130,7 +141,7 @@ rule check_downloaded:
 rule plot_speed:
     run:
         from datetime import datetime, timedelta, date, time
-        for root, dirs, files in os.walk("outputs/signatures/microbial/1m-then-trim/", topdown=False):
+        for root, dirs, files in os.walk("outputs/signatures/microbial/syrah/", topdown=False):
             ctimes = [os.stat((os.path.join(root, name))).st_ctime for name in files]
         bottom = np.min(ctimes)
         top = np.max(ctimes)
