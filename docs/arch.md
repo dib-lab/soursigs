@@ -85,7 +85,7 @@ and use Snakemake to control what tasks to run and get the results,
 but send the computation to a (local or remote) Celery worker.
 I checked other work queue solutions,
 but they were either too simple or required running specialized servers.
-With Celery I managed to use [Amazon SQS][19] as a broker
+With Celery I managed to use [Amazon SQS][5] as a broker
 (the queue of tasks to be executed,
 in Celery parlance),
 and [celery-s3][20] as the results backend.
@@ -108,7 +108,7 @@ I still need to provide credentials to access SQS and S3,
 but now I can deploy workers anywhere,
 even... on the [Google Cloud Platform][25].
 They have a free trial with \$300 in credits,
-so I used the [Container Engine][26] to deploy a Kubernetes cluster and run
+so I used the [Container Engine][26] to deploy a [Kubernetes][19] cluster and run
 workers under a [Replication Controller][27].
 
 Just to keep track: we are posting Celery tasks from a Rackspace server
@@ -134,7 +134,7 @@ file (coupled with some `PATH` magic) to replicate what I have inside the Docker
 The Dockerfile was very useful,
 because I mostly ran the same commands to recreate the environment.
 Finally,
-I wrote a [submission script][31] to start a job array with 40 jobs,
+I wrote a [submission script][40] to start a job array with 40 jobs,
 and after a bit of tuning I decided to use 12 Celery workers for each job,
 totalling 480 workers.
 
@@ -143,7 +143,7 @@ especially when I was tuning how many workers to run per job,
 but it achieved around 1600 signatures per hour,
 leading to about 10 days to calculate for all 412k datasets.
 Instead of downloading the whole dataset,
-we are [reading the first million reads][34] and using our [streaming trimming][33]
+we are [reading the first million reads][34] and using our [streaming error trimming][33]
 solution to calculate the signatures
 (and also to test if it is the best solution for this case).
 
@@ -185,16 +185,51 @@ and git (the DAG representation) to make a resilient system and,
 even more important,
 something that can be used in a scientific context to both increase bandwidth for important resources (like, well, the SRA)
 and to make sure data can stay around if the centralized solution goes away.
+The [Cancer Gene Trust][39] project is already using it,
+and I do hope more projects show up and adopt IPFS as a first-class dependency.
 And,
 even crazier,
 we can actually use IPFS to store our SBT implementation,
 but more about this in part 2!
 
-[0]: 
-[1]: 
-[2]: 
-[3]: 
-[4]: 
+[0]: http://ivory.idyll.org/blog/2016-sourmash-sbt.html
+[1]: http://ivory.idyll.org/blog/2016-sourmash-sbt-more.html
+[2]: http://ivory.idyll.org/lab/
+[3]: https://www.ncbi.nlm.nih.gov/sra
+[4]: https://www.cs.cmu.edu/~ckingsf/software/bloomtree/
+[5]: https://aws.amazon.com/sqs/
+[6]: https://www.rabbitmq.com/
+[7]: https://aws.amazon.com/lambda/
+[8]: https://gordon.readthedocs.io/en/latest/
+[9]: https://github.com/dib-lab/sourmash
+[10]: https://aws.amazon.com/amazon-linux-ami/
+[11]: https://github.com/jorgebastida/gordon/compare/master...luizirber:refactor/python_package
+[12]: https://packaging.python.org/
+[13]: https://www.python.org/dev/peps/pep-0513/
+[14]: https://aws.amazon.com/api-gateway/
+[15]: https://bitbucket.org/snakemake/snakemake/wiki/Home
+[16]: https://github.com/luizirber/soursigs/blob/6c6acf6429cec2e2e4a076dfc32adbf27fab1eed/Snakefile#L81
+[17]: https://github.com/ncbi/sra-tools
+[18]: http://docs.celeryproject.org/en/latest/userguide/tasks.html
+[19]: http://kubernetes.io/
+[20]: https://github.com/robgolding/celery-s3
 [21]: https://twitter.com/ctitusbrown/status/812003429535006721
+[22]: https://www.rackspace.com/openstack/public
+[23]: https://github.com/luizirber/soursigs/blob/6c6acf6429cec2e2e4a076dfc32adbf27fab1eed/Dockerfile
+[24]: https://hub.docker.com/r/luizirber/soursigs/tags/
+[25]: https://cloud.google.com/
+[26]: https://cloud.google.com/container-engine/
 [27]: http://kubernetes.io/docs/user-guide/replication-controller/
+[28]: https://ipfs.io/ipns/minhash.oxli.org/microbial/
+[29]: https://wiki.hpcc.msu.edu/
 [30]: https://github.com/NERSC/2016-11-14-sc16-Container-Tutorial
+[31]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/requirements.txt
+[32]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/Snakefile#L71
+[33]: https://peerj.com/preprints/890/
+[34]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/soursigs/tasks.py#L15
+[35]: https://github.com/dib-lab/syrah
+[36]: ?????
+[37]: https://github.com/dib-lab/sourmash/pull/45
+[38]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/soursigs/tasks.py#L34
+[39]: https://github.com/ga4gh/cgtd
+[40]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/submit
