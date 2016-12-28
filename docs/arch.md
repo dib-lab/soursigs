@@ -132,7 +132,7 @@ while it wouldn't be terribly expensive to spin up more nodes on GCP,
 I decided to go use the resources we already have:
 the [MSU HPCC][29].
 I couldn't run Docker containers there (HPC is wary of Docker,
-but [we are trying to change that!]][30]),
+but [we are trying to change that!][30]),
 so I used Conda to create a clean environment and used the [requirements][31]
 file (coupled with some `PATH` magic) to replicate what I have inside the Docker container.
 The Dockerfile was very useful,
