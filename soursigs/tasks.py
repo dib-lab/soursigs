@@ -28,3 +28,24 @@ def compute(sra_id):
 
             f.seek(0)
             return f.read()
+
+
+@app.task
+def compute_syrah(sra_id):
+    from snakemake import shell
+    with NamedTemporaryFile('w+t') as f:
+        try:
+            shell('fastq-dump -A {sra_id} -Z | syrah | '
+                  'sourmash compute -k 21 --dna - -o {output} --name {sra_id}'
+                  .format(sra_id=sra_id,
+                          output=f.name))
+        except CalledProcessError as e:
+            # We ignore SIGPIPE, since it is informational (and makes sense,
+            # it happens because `head` is closed and `fastq-dump` can't pipe
+            # its output anymore. More details:
+            # http://www.pixelbeat.org/programming/sigpipe_handling.html
+            if e.returncode != 141:
+                raise e
+
+        f.seek(0)
+        return f.read()

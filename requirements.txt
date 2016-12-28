@@ -4,3 +4,4 @@ https://github.com/dib-lab/khmer/archive/master.zip
 https://github.com/dib-lab/sourmash/archive/sbt_search.zip
 #sourmash==1.0
 snakemake==3.8.2
+syrah==0.1

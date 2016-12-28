@@ -25,7 +25,8 @@ rule all:
     input:
         "outputs/info/transcriptomic.csv",
         "outputs/info/microbial.csv",
-        "outputs/signatures/microbial/1m-then-trim/results"
+#        "outputs/signatures/microbial/1m-then-trim/results",
+        "outputs/signatures/microbial/syrah/results"
 
 rule microbial_signatures:
     input: inputs_from_runinfo
@@ -39,9 +40,16 @@ rule run_fastq_dump:
         subset="{subset}",
         config="{config}"
     run:
-        from soursigs.tasks import compute
+        from soursigs.tasks import compute, compute_syrah
         from celery.exceptions import TimeoutError
-        job = compute.delay(params.SRA_ID)
+
+        if params.config == "1m-then-trim":
+            job = compute.delay(params.SRA_ID)
+        elif params.config == "syrah":
+            job = compute_syrah.delay(params.SRA_ID)
+        else:
+            raise ValueError("Invalid config: {}".format(params.config))
+
         try:
             result = job.get(interval=60)
         except TimeoutError:
