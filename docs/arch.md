@@ -87,6 +87,8 @@ and use Snakemake to control what tasks to run and get the results,
 but send the computation to a (local or remote) Celery worker.
 I checked other work queue solutions,
 but they were either too simple or required running specialized servers.
+(and thanks to [Gabriel Marcondes][41] for enlightening me about how to best
+use Celery!).
 With Celery I managed to use [Amazon SQS][5] as a broker
 (the queue of tasks to be executed,
 in Celery parlance),
@@ -235,3 +237,4 @@ but more about this in part 2!
 [38]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/soursigs/tasks.py#L34
 [39]: https://github.com/ga4gh/cgtd
 [40]: https://github.com/luizirber/soursigs/blob/a049cbc5733adbcffaaf91e176bbcda43763ed23/submit
+[41]: http://ggmarcondes.com
