@@ -178,3 +178,7 @@ rule plot_speed:
                      '*' * int(cum / sumall * 15),
                      int(c / 24))
                  )
+
+        print('-' * 68)
+        print(format_string.format(
+               "", sumall, "", sumall, int(sumall / (len(ctimes) * 24))))
