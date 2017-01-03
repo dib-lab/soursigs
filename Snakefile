@@ -1,3 +1,4 @@
+import io
 import os
 from subprocess import CalledProcessError
 
@@ -65,6 +66,83 @@ rule run_fastq_dump:
                 f.write(result)
         finally:
             job.forget()
+
+rule compute_to_s3:
+    input: "outputs/info/microbial.csv",
+#    input: "outputs/info/{subset}.csv",
+#    params:
+#        subset="{subset}",
+    run:
+        from soursigs.tasks import compute_syrah_to_s3
+        import ipfsapi
+
+        ipfs = ipfsapi.connect()
+
+        subset = 'microbial'
+        # Download file list from ipfs,
+        node = ipfs.ls('/ipns/minhash.oxli.org/{}/syrah'.format(subset))
+        sigs = {os.path.splitext(p['Name'])[0]
+                for p in node['Objects'][0]['Links']}
+
+        # load input from runinfo
+        t = pd.read_csv(input[0], usecols=["Run"])
+
+        # find what tasks are missing from input,
+        missing = set(t['Run']) - sigs
+
+        for sig in missing:
+            # send tasks to SQS
+            compute_syrah_to_s3.delay(sig)
+
+rule s3_to_ipfs:
+    input: "outputs/info/microbial.csv",
+#    input: "outputs/info/{subset}.csv",
+#    params:
+#        subset="{subset}",
+    run:
+        import ipfsapi
+        from ipfsapi.exceptions import ErrorResponse
+        from boto.s3.connection import S3Connection
+
+        conn = S3Connection()
+        bucket = conn.get_bucket("soursigs-done")
+        ipfs = ipfsapi.connect()
+
+        subset = 'microbial'
+
+        for item in bucket.list('sigs/'):
+            sig = os.path.basename(item.key)
+            if sig:
+                sig_present = False
+                sig_path = '/signatures/microbial/syrah/{}.sig'.format(sig)
+                # check if sig is already present
+                try:
+                    ipfs.files_ls(sig_path)
+                except ErrorResponse as e:
+                    if 'file does not exist' in e.args:
+                        # we can add the sig
+                        sig_present = False
+                    else:
+                        # other error, reraise
+                        raise e
+                else:
+                    sig_present = True
+
+                if not sig_present:
+                    # add to IPFS
+                    ipfs.files_write(sig_path,
+                                     io.BytesIO(item.get_contents_as_string()),
+                                     create=True)
+                    sig_present = True
+
+                if sig_present:
+                    # remove from S3
+                    item.delete()
+
+        # publish new root
+        new_root = ipfs.files_stat('/signatures')['Hash']
+        ipfs.name_publish(new_root)
+        ipfs.pin_add(new_root, recursive=True)
 
 rule download_microbial_runinfo:
     output: "outputs/info/microbial.csv"
