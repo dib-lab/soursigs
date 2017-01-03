@@ -6,7 +6,7 @@
 #PBS -j oe
 #PBS -N soursigs
 #PBS -W umask=027
-#PBS -o ${PBS_O_WORKDIR}/logs/45/${PBS_JOBID}
+#PBS -o /${PBS_O_WORKDIR}/logs/45/${PBS_JOBID}
 #PBS -t 1-39
 
 cd $PBS_O_WORKDIR
