@@ -51,7 +51,7 @@ def compute_syrah(sra_id):
         return f.read()
 
 
-@app.task
+@app.task(ignore_result=True)
 def compute_syrah_to_s3(sra_id):
     from boto.s3.connection import S3Connection
     from boto.s3.key import Key
