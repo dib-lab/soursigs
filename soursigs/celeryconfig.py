@@ -19,7 +19,7 @@ CELERY_ENABLE_UTC = True
 CELERY_DISABLE_RATE_LIMITS = True
 BROKER_TRANSPORT_OPTIONS = {
  'queue_name_prefix': 'soursigs-',
- 'visibility_timeout': 345600, # seconds
+ 'visibility_timeout': 3600, # seconds
  'wait_time_seconds': 20,  # Long polling
  'polling_interval': 10,  # check queue every 10 seconds
 }
