@@ -90,15 +90,15 @@ rule compute_to_s3:
         # find what tasks are missing from input,
         missing = set(t['Run']) - sigs
 
+        num_tasks = 10000
         for sig in missing:
             # send tasks to SQS
             compute_syrah_to_s3.delay(sig)
+            num_tasks -= 1
+            if num_tasks == 0:
+                break
 
 rule s3_to_ipfs:
-    input: "outputs/info/microbial.csv",
-#    input: "outputs/info/{subset}.csv",
-#    params:
-#        subset="{subset}",
     run:
         import ipfsapi
         from ipfsapi.exceptions import ErrorResponse
@@ -107,8 +107,6 @@ rule s3_to_ipfs:
         conn = S3Connection()
         bucket = conn.get_bucket("soursigs-done")
         ipfs = ipfsapi.connect()
-
-        subset = 'microbial'
 
         for item in bucket.list('sigs/'):
             sig = os.path.basename(item.key)
@@ -186,22 +184,29 @@ rule download_ipfs:
         rm -rf go-ipfs*
     """
 
-rule update_ipfs:
-    shell: """
-        cd outputs
-        ../bin/ipfs name publish $(../bin/ipfs add -r signatures/ | tail -1 | cut -d " " -f2)
-    """
+rule update_ipfs_walk:
+    run:
+        import ipfsapi
+        from ipfsapi.exceptions import ErrorResponse
+        ipfs = ipfsapi.connect()
 
-rule update_ipfs_syrah:
-    shell: """
-        cd outputs/signatures/microbial
-        HASH=$({ipfs} add -r syrah/ | tail -1 | cut -d " " -f2)
-        {ipfs} files rm -r /signatures/microbial/syrah
-        {ipfs} files cp /ipfs/$HASH /signatures/microbial/syrah
-        HASH=$({ipfs} files stat /signatures | head -1)
-        {ipfs} name publish $HASH
-        {ipfs} pin add -r $HASH
-    """
+        os.chdir('outputs')
+        for root, dirs, files in os.walk("signatures"):
+            ipfs_path = os.path.join('/', root)
+            present = {f['Name'] for f in ipfs.files_ls(ipfs_path)['Entries']}
+            for f in files:
+                if f not in present:
+                    print('DEBUG: adding file {}/{}'.format(root, f))
+                    with open(os.path.join(root, f), 'rb') as fp:
+                        ipfs.files_write(os.path.join(ipfs_path, f),
+                                         io.BytesIO(fp.read()),
+                                         create=True)
+
+        # publish new root
+        new_root = ipfs.files_stat('/signatures')['Hash']
+        ipfs.name_publish(new_root)
+        ipfs.pin_add(new_root, recursive=True)
+
 
 rule check_downloaded:
     run:
