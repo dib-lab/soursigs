@@ -2,6 +2,8 @@ import os
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+from celery.exceptions import Ignore
+
 from . import app
 
 
@@ -51,8 +53,8 @@ def compute_syrah(sra_id):
         return f.read()
 
 
-@app.task(ignore_result=True)
-def compute_syrah_to_s3(sra_id):
+@app.task(bind=True, ignore_result=True)
+def compute_syrah_to_s3(self, sra_id):
     from boto.s3.connection import S3Connection
     from boto.s3.key import Key
     from snakemake import shell
@@ -83,3 +85,5 @@ def compute_syrah_to_s3(sra_id):
             k.key = os.path.join('sigs', sra_id)
             f.seek(0)
             k.set_contents_from_string(f.read())
+
+            raise Ignore()
