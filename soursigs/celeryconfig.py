@@ -1,12 +1,12 @@
 import os
 
-#CELERY_RESULT_BACKEND = 'celery_s3.backends.S3Backend'
+CELERY_RESULT_BACKEND = 'celery_s3.backends.S3Backend'
 
-#CELERY_S3_BACKEND_SETTINGS = {
-#    'aws_access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
-#    'aws_secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY'],
-#    'bucket': 'soursigs-results',
-#}
+CELERY_S3_BACKEND_SETTINGS = {
+    'aws_access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
+    'aws_secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY'],
+    'bucket': 'soursigs-results',
+}
 
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json', 'yaml']
